@@ -1,19 +1,232 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-   <meta charset="UTF-8">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-   <title>Flippy</title>
-   <link rel="stylesheet" href="./style.css">
-   <link rel="icon" href="./icon.png" type="image/x-icon">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tile Flip Game</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #222;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .stopwatch {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.5rem;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 10px;
+      z-index: 1;
+    }
+
+    .game-container {
+      display: grid;
+      gap: 5px;
+      justify-content: center;
+      align-content: center;
+      position: relative;
+    }
+
+    .tile {
+      width: 60px;
+      height: 60px;
+      background-color: white;
+      border-radius: 5px;
+      transition: background-color 0.2s;
+    }
+
+    .tile.black {
+      background-color: black;
+    }
+
+    .cursor {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border: 3px solid red;
+      border-radius: 5px;
+      box-sizing: border-box;
+      transition: transform 0.2s ease;
+    }
+
+    .win-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2rem;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      border-radius: 10px;
+      display: none;
+    }
+
+    .win-message.show {
+      display: block;
+    }
+  </style>
 </head>
-
 <body>
-   <div id="tiles"></div>
-    <div class="cursor" id="cursor"></div>
-   <script src="game.js"></script>
-</body>
+  <div class="stopwatch" id="stopwatch">Time: 00:00:000</div>
+  <div class="game-container" id="game"></div>
+  <div class="cursor" id="cursor"></div>
+  <div class="win-message" id="winMessage">You Win!</div>
 
+  <script>
+    const gridSize = 5;
+    const gameContainer = document.getElementById('game');
+    const cursor = document.getElementById('cursor');
+    const winMessage = document.getElementById('winMessage');
+    const stopwatch = document.getElementById('stopwatch');
+
+    let cursorPosition = { x: 2, y: 2 }; // Start at the middle tile
+    let gameWon = false;
+    let stopwatchStartTime = 0;  // To store the start time of the stopwatch
+    let stopwatchElapsedTime = 0; // Elapsed time since stopwatch started
+    let stopwatchInterval;
+    let gameStarted = false;
+
+    // Initialize grid
+    function createGrid(size) {
+      gameContainer.style.gridTemplateColumns = `repeat(${size}, 60px)`;
+      gameContainer.style.gridTemplateRows = `repeat(${size}, 60px)`;
+
+      for (let i = 0; i < size * size; i++) {
+        const tile = document.createElement('div');
+        tile.classList.add('tile');
+        // Set each tile's initial color randomly (either black or white)
+        if (Math.random() > 0.5) {
+          tile.classList.add('black');
+        }
+        gameContainer.appendChild(tile);
+      }
+
+      updateCursor();
+    }
+
+    // Start stopwatch
+    function startStopwatch() {
+      if (!gameStarted) {
+        gameStarted = true;
+        stopwatchStartTime = performance.now() - stopwatchElapsedTime; // Set the starting time
+        stopwatchInterval = requestAnimationFrame(updateStopwatch);
+      }
+    }
+
+    // Update stopwatch
+    function updateStopwatch() {
+      if (!gameWon) {
+        stopwatchElapsedTime = performance.now() - stopwatchStartTime;
+        const milliseconds = Math.floor(stopwatchElapsedTime % 1000);
+        const seconds = Math.floor((stopwatchElapsedTime / 1000) % 60);
+        const minutes = Math.floor(stopwatchElapsedTime / 60000);
+
+        stopwatch.textContent = `Time: ${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}:${milliseconds < 100 ? '0' + (milliseconds < 10 ? '0' + milliseconds : milliseconds) : milliseconds}`;
+        requestAnimationFrame(updateStopwatch);
+      }
+    }
+
+    // Stop stopwatch
+    function stopStopwatch() {
+      cancelAnimationFrame(stopwatchInterval);
+    }
+
+    // Reset game
+    function resetGame() {
+      gameWon = false;
+      gameStarted = false;
+      cursorPosition = { x: 2, y: 2 };
+      winMessage.classList.remove('show');
+      // Clear existing tiles
+      gameContainer.innerHTML = '';
+      createGrid(gridSize);
+      stopwatch.textContent = 'Time: 00:00:000';
+      stopwatchElapsedTime = 0;  // Reset the stopwatch
+      stopStopwatch();
+      stopwatchStartTime = 0; // Make sure the start time is also reset
+    }
+
+    // Flip tile color
+    function flipTile(x, y) {
+      const index = y * gridSize + x; // Convert grid coordinates to array index
+      const tile = gameContainer.children[index];
+      tile.classList.toggle('black');
+      checkWinCondition();
+    }
+
+    // Check win condition
+    function checkWinCondition() {
+      const allTiles = Array.from(gameContainer.children);
+      const firstTileColor = allTiles[0].classList.contains('black');
+
+      if (allTiles.every(tile => tile.classList.contains('black') === firstTileColor)) {
+        gameWon = true;
+        winMessage.classList.add('show');
+        stopStopwatch(); // Stop stopwatch when the game is won
+      }
+    }
+
+    // Move cursor
+    function moveCursor(dx, dy) {
+      if (gameWon) return;
+
+      const newX = cursorPosition.x + dx;
+      const newY = cursorPosition.y + dy;
+
+      // Ensure the cursor stays within bounds
+      if (newX >= 0 && newX < gridSize && newY >= 0 && newY < gridSize) {
+        cursorPosition.x = newX;
+        cursorPosition.y = newY;
+        updateCursor();
+        startStopwatch(); // Start stopwatch on first move
+        flipTile(cursorPosition.x, cursorPosition.y); // Flip the correct tile
+      }
+    }
+
+    // Update cursor position
+    function updateCursor() {
+      cursor.style.transform = `translate(${(cursorPosition.x - 2) * 65}px, ${(cursorPosition.y - 2) * 65}px)`; // Keeps easing intact
+    }
+
+    // Keyboard controls
+    document.addEventListener('keydown', (event) => {
+      switch (event.key) {
+        case 'ArrowUp':
+        case 'w':
+          moveCursor(0, -1);
+          break;
+        case 'ArrowDown':
+        case 's':
+          moveCursor(0, 1);
+          break;
+        case 'ArrowLeft':
+        case 'a':
+          moveCursor(-1, 0);
+          break;
+        case 'ArrowRight':
+        case 'd':
+          moveCursor(1, 0);
+          break;
+        case ' ':
+          resetGame(); // Reset game when space is pressed
+          break;
+      }
+    });
+
+    // Initialize game
+    createGrid(gridSize);
+  </script>
+</body>
 </html>

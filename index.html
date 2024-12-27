@@ -5,67 +5,110 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tile Flip Game</title>
   <style>
-    body {
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background-color: #222;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      flex-direction: column;
-      overflow: hidden;
-      position: relative;
+    :root {
+      --tile-size: 60px;
+      --gap-size: 5px;
+      --primary-bg: #222;
+      --tile-light: white;
+      --tile-dark: black;
+      --cursor-color: red;
     }
 
-    .stopwatch {
-      position: absolute;
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background-color: var(--primary-bg);
+      color: white;
+      font-family: Arial, sans-serif;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .game-header {
+      position: fixed;
       top: 5%;
       left: 50%;
       transform: translateX(-50%);
-      font-size: 1.5rem;
-      padding: 10px;
+      font-size: 1.2rem;
+      padding: 15px;
       background: rgba(0, 0, 0, 0.6);
       border-radius: 10px;
-      z-index: 1;
-      width: 50%;
+      width: min(400px, 80%);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .times {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      gap: 20px;
+    }
+
+    .time-display {
       text-align: center;
-      transition: transform 0.2s ease;
+    }
+
+    .size-selector {
+      display: flex;
+      gap: 5px;
+      margin-top: 5px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .size-btn {
+      background: #444;
+      border: none;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .size-btn.active {
+      background: #666;
+    }
+
+    .size-btn:hover {
+      background: #555;
     }
 
     .game-container {
       display: grid;
-      gap: 5px;
-      justify-content: center;
-      align-content: center;
+      gap: var(--gap-size);
       position: relative;
     }
 
     .tile {
-      width: 60px;
-      height: 60px;
-      background-color: white;
+      width: var(--tile-size);
+      height: var(--tile-size);
+      background-color: var(--tile-light);
       border-radius: 5px;
-      transition: background-color 0.2s;
+      transition: background-color 0.2s ease;
     }
 
     .tile.black {
-      background-color: black;
+      background-color: var(--tile-dark);
     }
 
     .cursor {
       position: absolute;
-      width: 60px;
-      height: 60px;
-      border: 3px solid red;
+      width: var(--tile-size);
+      height: var(--tile-size);
+      border: 3px solid var(--cursor-color);
       border-radius: 5px;
       box-sizing: border-box;
       transition: transform 0.2s ease;
+      pointer-events: none;
     }
 
     .win-message {
-      position: absolute;
+      position: fixed;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
@@ -82,157 +125,276 @@
   </style>
 </head>
 <body>
-  <div class="stopwatch" id="stopwatch">Time: 00:00.00</div>
+  <div class="game-header">
+    <div class="times">
+      <div class="time-display">
+        Current Time<br>
+        <span id="stopwatch">00:00.00</span>
+      </div>
+      <div class="time-display">
+        Best Time<br>
+        <span id="bestTime">--:--:--</span>
+      </div>
+    </div>
+    <div class="size-selector" id="sizeSelector"></div>
+  </div>
   <div class="game-container" id="game"></div>
   <div class="cursor" id="cursor"></div>
   <div class="win-message" id="winMessage">You Win!</div>
 
   <script>
-    const gridSize = 5;
-    const gameContainer = document.getElementById('game');
-    const cursor = document.getElementById('cursor');
-    const winMessage = document.getElementById('winMessage');
-    const stopwatch = document.getElementById('stopwatch');
+    class SeededRandom {
+      constructor(seed = Math.floor(Math.random() * 1000000)) {
+        this.seed = seed;
+      }
 
-    let cursorPosition = { x: 2, y: 2 }; // Start at the middle tile
-    let gameWon = false;
-    let gameStarted = false;
+      next() {
+        let result = this.seed;
+        result ^= result << 13;
+        result ^= result >> 17;
+        result ^= result << 5;
+        this.seed = result;
+        return (result >>> 0) / 4294967296;
+      }
+    }
 
-    // Stopwatch variables
-    let timer = null;
-    let elapsedTime = 0; // Total time in milliseconds
+    class TileFlipGame {
+      constructor(gridSize = 5) {
+        this.GRID_SIZES = [3, 4, 5, 6, 7, 9, 11, 15, 20];
+        this.gridSize = gridSize;
+        this.gameContainer = document.getElementById('game');
+        this.cursor = document.getElementById('cursor');
+        this.winMessage = document.getElementById('winMessage');
+        this.stopwatch = document.getElementById('stopwatch');
+        this.bestTimeDisplay = document.getElementById('bestTime');
+        this.sizeSelector = document.getElementById('sizeSelector');
+        
+        this.cursorPosition = { x: Math.floor(gridSize/2), y: Math.floor(gridSize/2) };
+        this.gameWon = false;
+        this.gameStarted = false;
+        this.timer = null;
+        this.elapsedTime = 0;
+        this.currentSeed = Math.floor(Math.random() * 1000000);
+        this.rng = new SeededRandom(this.currentSeed);
+        
+        this.initializeSizeSelector();
+        this.initializeGame();
+        this.setupEventListeners();
+        this.updateBestTimeDisplay();
+      }
 
-    // Initialize grid
-    function createGrid(size) {
-      gameContainer.style.gridTemplateColumns = `repeat(${size}, 60px)`;
-      gameContainer.style.gridTemplateRows = `repeat(${size}, 60px)`;
+      initializeSizeSelector() {
+        this.GRID_SIZES.forEach(size => {
+          const button = document.createElement('button');
+          button.textContent = `${size}x${size}`;
+          button.classList.add('size-btn');
+          if (size === this.gridSize) {
+            button.classList.add('active');
+          }
+          button.addEventListener('click', () => {
+            if (size !== this.gridSize) {
+              this.changeGridSize(size);
+            }
+          });
+          this.sizeSelector.appendChild(button);
+        });
+      }
 
-      for (let i = 0; i < size * size; i++) {
-        const tile = document.createElement('div');
-        tile.classList.add('tile');
-        if (Math.random() > 0.5) {
-          tile.classList.add('black');
+      updateSizeSelector() {
+        const buttons = this.sizeSelector.querySelectorAll('.size-btn');
+        buttons.forEach(btn => {
+          const size = parseInt(btn.textContent);
+          btn.classList.toggle('active', size === this.gridSize);
+        });
+      }
+
+      formatTime(ms) {
+        const totalSeconds = Math.floor(ms / 1000);
+        const milliseconds = (ms % 1000) / 10;
+        const seconds = totalSeconds % 60;
+        const minutes = Math.floor(totalSeconds / 60);
+        return `${String(minutes).padStart(2, '0')}:${
+          String(seconds).padStart(2, '0')}.${String(Math.floor(milliseconds)).padStart(2, '0')}`;
+      }
+
+      getBestTime() {
+        const bestTimes = JSON.parse(localStorage.getItem('tileFlipBestTimes') || '{}');
+        return bestTimes[this.gridSize] || null;
+      }
+
+      setBestTime(time) {
+        const bestTimes = JSON.parse(localStorage.getItem('tileFlipBestTimes') || '{}');
+        const currentBest = bestTimes[this.gridSize];
+        
+        if (!currentBest || time < currentBest) {
+          bestTimes[this.gridSize] = time;
+          localStorage.setItem('tileFlipBestTimes', JSON.stringify(bestTimes));
+          this.updateBestTimeDisplay();
         }
-        gameContainer.appendChild(tile);
       }
 
-      updateCursor();
-    }
+      clearAllBestTimes() {
+        localStorage.removeItem('tileFlipBestTimes');
+        this.updateBestTimeDisplay();
+      }
 
-    // Start stopwatch
-    function startStopwatch() {
-      if (!gameStarted) {
-        gameStarted = true;
-        timer = setInterval(() => {
-          elapsedTime += 10; // Increment by 10ms
-          updateStopwatchDisplay();
-        }, 10);
+      updateBestTimeDisplay() {
+        const bestTime = this.getBestTime();
+        this.bestTimeDisplay.textContent = bestTime !== null ? this.formatTime(bestTime) : '--:--:--';
+      }
+
+      initializeGame() {
+        this.createGrid();
+        this.updateCursor();
+      }
+
+      createGrid() {
+        this.gameContainer.style.gridTemplateColumns = `repeat(${this.gridSize}, var(--tile-size))`;
+        this.gameContainer.style.gridTemplateRows = `repeat(${this.gridSize}, var(--tile-size))`;
+        
+        this.rng = new SeededRandom(this.currentSeed);
+        
+        this.gameContainer.innerHTML = Array(this.gridSize * this.gridSize)
+          .fill('')
+          .map(() => `<div class="tile ${this.rng.next() > 0.5 ? 'black' : ''}"></div>`)
+          .join('');
+      }
+
+      updateStopwatchDisplay() {
+        this.stopwatch.textContent = this.formatTime(this.elapsedTime);
+      }
+
+      startStopwatch() {
+        if (!this.gameStarted) {
+          this.gameStarted = true;
+          this.timer = setInterval(() => {
+            this.elapsedTime += 10;
+            this.updateStopwatchDisplay();
+          }, 10);
+        }
+      }
+
+      stopStopwatch() {
+        clearInterval(this.timer);
+        this.timer = null;
+      }
+
+      resetStopwatch() {
+        this.stopStopwatch();
+        this.elapsedTime = 0;
+        this.updateStopwatchDisplay();
+      }
+
+      flipTile(x, y) {
+        const index = y * this.gridSize + x;
+        const tile = this.gameContainer.children[index];
+        tile.classList.toggle('black');
+        this.checkWinCondition();
+      }
+
+      checkWinCondition() {
+        const tiles = Array.from(this.gameContainer.children);
+        const firstTileColor = tiles[0].classList.contains('black');
+        
+        if (tiles.every(tile => tile.classList.contains('black') === firstTileColor)) {
+          this.gameWon = true;
+          this.winMessage.classList.add('show');
+          this.stopStopwatch();
+          this.setBestTime(this.elapsedTime);
+        }
+      }
+
+      updateCursor() {
+        const offset = (this.gridSize - 1) / 2;
+        this.cursor.style.transform = `translate(${
+          (this.cursorPosition.x - offset) * (60 + 5)}px, ${
+          (this.cursorPosition.y - offset) * (60 + 5)}px)`;
+      }
+
+      moveCursor(dx, dy) {
+        if (this.gameWon) return;
+
+        const newX = this.cursorPosition.x + dx;
+        const newY = this.cursorPosition.y + dy;
+
+        if (newX >= 0 && newX < this.gridSize && newY >= 0 && newY < this.gridSize) {
+          this.cursorPosition = { x: newX, y: newY };
+          this.updateCursor();
+          this.startStopwatch();
+          this.flipTile(this.cursorPosition.x, this.cursorPosition.y);
+        }
+      }
+
+      changeGridSize(newSize) {
+        if (newSize === this.gridSize) return;
+        this.gridSize = newSize;
+        this.cursorPosition = { 
+          x: Math.floor(newSize/2), 
+          y: Math.floor(newSize/2) 
+        };
+        this.updateSizeSelector();
+        this.reset(true);
+        this.updateBestTimeDisplay();
+      }
+
+      reset(newSeed = true) {
+        this.gameWon = false;
+        this.gameStarted = false;
+        this.cursorPosition = { 
+          x: Math.floor(this.gridSize/2), 
+          y: Math.floor(this.gridSize/2) 
+        };
+        this.winMessage.classList.remove('show');
+        
+        if (newSeed) {
+          this.currentSeed = Math.floor(Math.random() * 1000000);
+        }
+        
+        this.createGrid();
+        this.updateCursor();
+        this.resetStopwatch();
+      }
+
+      setupEventListeners() {
+        const keyboardControls = {
+          'ArrowUp': () => this.moveCursor(0, -1),
+          'w': () => this.moveCursor(0, -1),
+          'ArrowDown': () => this.moveCursor(0, 1),
+          's': () => this.moveCursor(0, 1),
+          'ArrowLeft': () => this.moveCursor(-1, 0),
+          'a': () => this.moveCursor(-1, 0),
+          'ArrowRight': () => this.moveCursor(1, 0),
+          'd': () => this.moveCursor(1, 0),
+          ' ': () => this.reset(true),
+          'q': () => this.reset(true),
+          'Shift': (e) => {
+            if (e.key === 'Shift' && e.location === 2) { // Right Shift
+              this.reset(true);
+            }
+          },
+          'e': () => this.reset(false),
+          'r': () => this.reset(false),
+          'f': () => this.reset(false),
+          'Enter': () => this.reset(false)
+        };
+
+        document.addEventListener('keydown', (event) => {
+          if (event.shiftKey && event.key === 'Backspace') {
+            this.clearAllBestTimes();
+            return;
+          }
+
+          const handler = keyboardControls[event.key];
+          if (handler) {
+            event.preventDefault();
+            handler(event);
+          }
+        });
       }
     }
 
-    // Stop stopwatch
-    function stopStopwatch() {
-      clearInterval(timer);
-      timer = null;
-    }
-
-    // Reset stopwatch
-    function resetStopwatch() {
-      stopStopwatch();
-      elapsedTime = 0;
-      updateStopwatchDisplay();
-    }
-
-    // Update stopwatch display
-    function updateStopwatchDisplay() {
-      const totalSeconds = Math.floor(elapsedTime / 1000);
-      const milliseconds = (elapsedTime % 1000) / 10; // Two-digit milliseconds
-      const seconds = totalSeconds % 60;
-      const minutes = Math.floor(totalSeconds / 60);
-
-      stopwatch.textContent = `Time: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toFixed(0).padStart(2, '0')}`;
-    }
-
-    // Reset game
-    function resetGame() {
-      gameWon = false;
-      gameStarted = false;
-      cursorPosition = { x: 2, y: 2 };
-      winMessage.classList.remove('show');
-      gameContainer.innerHTML = ''; // Clear existing tiles
-      createGrid(gridSize);
-      resetStopwatch(); // Reset the stopwatch
-    }
-
-    // Flip tile color
-    function flipTile(x, y) {
-      const index = y * gridSize + x; // Convert grid coordinates to array index
-      const tile = gameContainer.children[index];
-      tile.classList.toggle('black');
-      checkWinCondition();
-    }
-
-    // Check win condition
-    function checkWinCondition() {
-      const allTiles = Array.from(gameContainer.children);
-      const firstTileColor = allTiles[0].classList.contains('black');
-
-      if (allTiles.every(tile => tile.classList.contains('black') === firstTileColor)) {
-        gameWon = true;
-        winMessage.classList.add('show');
-        stopStopwatch(); // Stop stopwatch when the game is won
-      }
-    }
-
-    // Move cursor
-    function moveCursor(dx, dy) {
-      if (gameWon) return;
-
-      const newX = cursorPosition.x + dx;
-      const newY = cursorPosition.y + dy;
-
-      if (newX >= 0 && newX < gridSize && newY >= 0 && newY < gridSize) {
-        cursorPosition.x = newX;
-        cursorPosition.y = newY;
-        updateCursor();
-        startStopwatch(); // Start stopwatch on first move
-        flipTile(cursorPosition.x, cursorPosition.y);
-      }
-    }
-
-    // Update cursor position
-    function updateCursor() {
-      cursor.style.transform = `translate(${(cursorPosition.x - 2) * 65}px, ${(cursorPosition.y - 2) * 65}px)`;
-    }
-
-    // Keyboard controls
-    document.addEventListener('keydown', (event) => {
-      switch (event.key) {
-        case 'ArrowUp':
-        case 'w':
-          moveCursor(0, -1);
-          break;
-        case 'ArrowDown':
-        case 's':
-          moveCursor(0, 1);
-          break;
-        case 'ArrowLeft':
-        case 'a':
-          moveCursor(-1, 0);
-          break;
-        case 'ArrowRight':
-        case 'd':
-          moveCursor(1, 0);
-          break;
-        case ' ':
-        case 'r':
-          resetGame(); // Reset game when space is pressed
-          break;
-      }
-    });
-
-    // Initialize game
-    createGrid(gridSize);
+    // Initialize game with default 5x5 grid
+    const game = new TileFlipGame(5);
   </script>
 </body>
 </html>

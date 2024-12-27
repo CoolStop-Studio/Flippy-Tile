@@ -67,6 +67,7 @@
       border-radius: 5px;
       cursor: pointer;
       transition: background-color 0.2s;
+      min-width: 55px;
     }
 
     .size-btn.active {
@@ -116,7 +117,7 @@
       padding: 50px;
       border-radius: 10px;
       display: none;
-      min-width: 50%;
+      width:25%;
     }
 
     .message-display {
@@ -139,6 +140,13 @@
       width: 100%;
       gap: 20px;
       cursor: pointer;
+    }
+
+    .win-buttons {
+      font-size: 2rem;
+      background: none;
+      color: white;
+      text-align: center;
     }
 
     .win-buttons:hover {
@@ -198,6 +206,9 @@
         this.gameContainer = document.getElementById('game');
         this.cursor = document.getElementById('cursor');
         this.winMessage = document.getElementById('winMessage');
+        this.winTimer = document.getElementById('win-time')
+        this.nextButton = document.getElementById('next-button');
+        this.retryButton = document.getElementById('retry-button');
         this.stopwatch = document.getElementById('stopwatch');
         this.bestTimeDisplay = document.getElementById('bestTime');
         this.sizeSelector = document.getElementById('sizeSelector');
@@ -211,6 +222,7 @@
         this.rng = new SeededRandom(this.currentSeed);
         
         this.initializeSizeSelector();
+        this.initializeWinButtons();
         this.initializeGame();
         this.setupEventListeners();
         this.updateBestTimeDisplay();
@@ -230,6 +242,15 @@
             }
           });
           this.sizeSelector.appendChild(button);
+        });
+      }
+
+      initializeWinButtons() {
+        this.nextButton.addEventListener('click', () => {
+          this.reset(true);
+        });
+        this.retryButton.addEventListener('click', () => {
+          this.reset(false);
         });
       }
 
@@ -330,11 +351,16 @@
         const firstTileColor = tiles[0].classList.contains('black');
         
         if (tiles.every(tile => tile.classList.contains('black') === firstTileColor)) {
-          this.gameWon = true;
-          this.winMessage.classList.add('show');
-          this.stopStopwatch();
-          this.setBestTime(this.elapsedTime);
+          this.onWin()
         }
+      }
+
+      onWin() {
+        this.gameWon = true;
+        this.winMessage.classList.add('show');
+        this.stopStopwatch();
+        this.setBestTime(this.elapsedTime);
+        this.winTimer.innerHTML = this.formatTime(this.elapsedTime);
       }
 
       updateCursor() {

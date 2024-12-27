@@ -21,7 +21,7 @@
 
     .stopwatch {
       position: absolute;
-      top: 20px;
+      top: 5%;
       left: 50%;
       transform: translateX(-50%);
       font-size: 1.5rem;
@@ -29,6 +29,9 @@
       background: rgba(0, 0, 0, 0.6);
       border-radius: 10px;
       z-index: 1;
+      width: 50%;
+      text-align: center;
+      transition: transform 0.2s ease;
     }
 
     .game-container {
@@ -79,7 +82,7 @@
   </style>
 </head>
 <body>
-  <div class="stopwatch" id="stopwatch">Time: 00:00:000</div>
+  <div class="stopwatch" id="stopwatch">Time: 00:00.00</div>
   <div class="game-container" id="game"></div>
   <div class="cursor" id="cursor"></div>
   <div class="win-message" id="winMessage">You Win!</div>
@@ -93,10 +96,11 @@
 
     let cursorPosition = { x: 2, y: 2 }; // Start at the middle tile
     let gameWon = false;
-    let stopwatchStartTime = 0;  // To store the start time of the stopwatch
-    let stopwatchElapsedTime = 0; // Elapsed time since stopwatch started
-    let stopwatchInterval;
     let gameStarted = false;
+
+    // Stopwatch variables
+    let timer = null;
+    let elapsedTime = 0; // Total time in milliseconds
 
     // Initialize grid
     function createGrid(size) {
@@ -106,7 +110,6 @@
       for (let i = 0; i < size * size; i++) {
         const tile = document.createElement('div');
         tile.classList.add('tile');
-        // Set each tile's initial color randomly (either black or white)
         if (Math.random() > 0.5) {
           tile.classList.add('black');
         }
@@ -120,27 +123,34 @@
     function startStopwatch() {
       if (!gameStarted) {
         gameStarted = true;
-        stopwatchStartTime = performance.now() - stopwatchElapsedTime; // Set the starting time
-        stopwatchInterval = requestAnimationFrame(updateStopwatch);
-      }
-    }
-
-    // Update stopwatch
-    function updateStopwatch() {
-      if (!gameWon) {
-        stopwatchElapsedTime = performance.now() - stopwatchStartTime;
-        const milliseconds = Math.floor(stopwatchElapsedTime % 1000);
-        const seconds = Math.floor((stopwatchElapsedTime / 1000) % 60);
-        const minutes = Math.floor(stopwatchElapsedTime / 60000);
-
-        stopwatch.textContent = `Time: ${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}:${milliseconds < 100 ? '0' + (milliseconds < 10 ? '0' + milliseconds : milliseconds) : milliseconds}`;
-        requestAnimationFrame(updateStopwatch);
+        timer = setInterval(() => {
+          elapsedTime += 10; // Increment by 10ms
+          updateStopwatchDisplay();
+        }, 10);
       }
     }
 
     // Stop stopwatch
     function stopStopwatch() {
-      cancelAnimationFrame(stopwatchInterval);
+      clearInterval(timer);
+      timer = null;
+    }
+
+    // Reset stopwatch
+    function resetStopwatch() {
+      stopStopwatch();
+      elapsedTime = 0;
+      updateStopwatchDisplay();
+    }
+
+    // Update stopwatch display
+    function updateStopwatchDisplay() {
+      const totalSeconds = Math.floor(elapsedTime / 1000);
+      const milliseconds = (elapsedTime % 1000) / 10; // Two-digit milliseconds
+      const seconds = totalSeconds % 60;
+      const minutes = Math.floor(totalSeconds / 60);
+
+      stopwatch.textContent = `Time: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toFixed(0).padStart(2, '0')}`;
     }
 
     // Reset game
@@ -149,13 +159,9 @@
       gameStarted = false;
       cursorPosition = { x: 2, y: 2 };
       winMessage.classList.remove('show');
-      // Clear existing tiles
-      gameContainer.innerHTML = '';
+      gameContainer.innerHTML = ''; // Clear existing tiles
       createGrid(gridSize);
-      stopwatch.textContent = 'Time: 00:00:000';
-      stopwatchElapsedTime = 0;  // Reset the stopwatch
-      stopStopwatch();
-      stopwatchStartTime = 0; // Make sure the start time is also reset
+      resetStopwatch(); // Reset the stopwatch
     }
 
     // Flip tile color
@@ -185,19 +191,18 @@
       const newX = cursorPosition.x + dx;
       const newY = cursorPosition.y + dy;
 
-      // Ensure the cursor stays within bounds
       if (newX >= 0 && newX < gridSize && newY >= 0 && newY < gridSize) {
         cursorPosition.x = newX;
         cursorPosition.y = newY;
         updateCursor();
         startStopwatch(); // Start stopwatch on first move
-        flipTile(cursorPosition.x, cursorPosition.y); // Flip the correct tile
+        flipTile(cursorPosition.x, cursorPosition.y);
       }
     }
 
     // Update cursor position
     function updateCursor() {
-      cursor.style.transform = `translate(${(cursorPosition.x - 2) * 65}px, ${(cursorPosition.y - 2) * 65}px)`; // Keeps easing intact
+      cursor.style.transform = `translate(${(cursorPosition.x - 2) * 65}px, ${(cursorPosition.y - 2) * 65}px)`;
     }
 
     // Keyboard controls
@@ -220,6 +225,7 @@
           moveCursor(1, 0);
           break;
         case ' ':
+        case 'r':
           resetGame(); // Reset game when space is pressed
           break;
       }

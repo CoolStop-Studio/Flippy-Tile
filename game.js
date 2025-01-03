@@ -16,7 +16,7 @@ class SeededRandom {
 class TileFlipGame {
     constructor(gridSize = 5) {
         this.GRID_SIZES = [3, 4, 5, 6, 7, 9, 11, 13, 15, 20, 50, 200];
-        this.TARGET_GRID_SIZE = 800; // Target size for all grids
+        this.TARGET_GRID_SIZE = window.innerHeight / 1.8; // Target size for all grids
         this.BASE_CURSOR_BORDER = 3; // Fixed cursor border width
 
         this.gridSize = gridSize;
@@ -43,6 +43,13 @@ class TileFlipGame {
         this.initializeGame();
         this.setupEventListeners();
         this.updateBestTimeDisplay();
+
+        window.addEventListener("resize", () => this.resizeWindow());
+    }
+
+    resizeWindow() {
+        this.TARGET_GRID_SIZE = window.innerHeight / 2;
+        this.updateStyles();
     }
 
     calculateScaling() {
@@ -89,19 +96,33 @@ class TileFlipGame {
         tileStyle.id = 'dynamic-game-styles';
         document.head.appendChild(tileStyle);
     }
+    // In your TileFlipGame class, update the initializeSizeSelector method:
     initializeSizeSelector() {
+        // Clear existing buttons first
+        this.sizeSelector.innerHTML = '';
+
         this.GRID_SIZES.forEach(size => {
             const button = document.createElement('button');
-            button.textContent = `${size}x${size}`;
+            button.textContent = `${size}×${size}`; // Using × instead of x
             button.classList.add('size-btn');
             if (size === this.gridSize) {
                 button.classList.add('active');
             }
-            button.addEventListener('click', () => {
+
+            // Add click event listener
+            button.addEventListener('click', (e) => {
+                e.preventDefault(); // Prevent any default button behavior
                 if (size !== this.gridSize) {
                     this.changeGridSize(size);
+
+                    // Update active state of all buttons
+                    this.sizeSelector.querySelectorAll('.size-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    button.classList.add('active');
                 }
             });
+
             this.sizeSelector.appendChild(button);
         });
     }
@@ -135,19 +156,19 @@ class TileFlipGame {
         const bestTimes = JSON.parse(localStorage.getItem('tileFlipBestTimes') || '{}');
         return bestTimes[this.gridSize] !== undefined ? bestTimes[this.gridSize] : null;
     }
-    
+
     setBestTime(time) {
         const bestTimes = JSON.parse(localStorage.getItem('tileFlipBestTimes') || '{}');
         const currentBest = bestTimes[this.gridSize];
-    
+
         // Ensure 0ms is handled correctly as a valid best time
         if (currentBest == null || time < currentBest) {
             bestTimes[this.gridSize] = time;
             localStorage.setItem('tileFlipBestTimes', JSON.stringify(bestTimes));
             this.updateBestTimeDisplay();
         }
-    }    
-    
+    }
+
 
     clearAllBestTimes() {
         localStorage.removeItem('tileFlipBestTimes');
@@ -311,7 +332,6 @@ class TileFlipGame {
             'f': () => this.reset(false),
             'Enter': () => this.reset(false)
         };
-
         document.addEventListener('keydown', (event) => {
             if (event.shiftKey && event.key === 'Backspace') {
                 this.clearAllBestTimes();

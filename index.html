@@ -9,21 +9,37 @@
 </head>
 
 <body>
-  <div class="game-header">
-    <div class="times">
-      <div class="time-display">
-        Current Time<br>
-        <span id="stopwatch">00:00.00</span>
-      </div>
-      <div class="time-display">
-        Best Time<br>
-        <span id="bestTime">--:--:--</span>
+  <div class="game-sidebar">
+    <h2>Grid Size</h2>
+    <div class="size-selector" id="sizeSelector">
+      <!-- Buttons will be added here by JavaScript -->
+    </div>
+  </div>
+
+  <!-- Main game area -->
+  <div class="game-main">
+    <!-- Header with timers -->
+    <div class="game-header">
+      <div class="times">
+        <div class="time-display">
+          Current Time<br>
+          <span id="stopwatch">00:00.00</span>
+        </div>
+        <div class="time-display">
+          Best Time<br>
+          <span id="bestTime">--:--:--</span>
+        </div>
       </div>
     </div>
-    <div class="size-selector" id="sizeSelector"></div>
+
+    <!-- Game area with container and cursor -->
+    <div class="game-area">
+      <div class="game-container" id="game"></div>
+      <div class="cursor" id="cursor"></div>
+    </div>
   </div>
-  <div class="game-container" id="game"></div>
-  <div class="cursor" id="cursor"></div>
+
+  <!-- Win message overlay -->
   <div class="win-message" id="winMessage">
     <div class="message-display">You win!</div>
     <div id="win-time">--:--:--</div>

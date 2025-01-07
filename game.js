@@ -102,13 +102,14 @@ class TileFlipGame {
         this.sizeSelector.innerHTML = '';
 
         this.GRID_SIZES.forEach(size => {
+            
             const button = document.createElement('button');
-            button.textContent = `${size}×${size}`; // Using × instead of x
+            button.textContent = `${size}x${size}`; // Using × instead of x
             button.classList.add('size-btn');
             if (size === this.gridSize) {
                 button.classList.add('active');
             }
-
+            
             // Add click event listener
             button.addEventListener('click', (e) => {
                 e.preventDefault(); // Prevent any default button behavior
@@ -124,7 +125,36 @@ class TileFlipGame {
             });
 
             this.sizeSelector.appendChild(button);
+
         });
+
+        const customSizeButton = document.createElement('button')
+        customSizeButton.textContent = "?x?"; // Using × instead of x
+        customSizeButton.classList.add('size-btn');
+        if (!this.GRID_SIZES.includes(this.gridSize)) {
+            customSizeButton.classList.add('active');
+        }
+            
+        // Add click event listener
+        customSizeButton.addEventListener('click', (e) => {
+            e.preventDefault(); // Prevent any default button behavior
+
+            let newSize;
+            let valid = false;
+            while(!valid) {
+                newSize = prompt("Size?")
+                if(newSize)
+            }
+            this.changeGridSize(newSize);
+            customSizeButton.textContent = `${newSize}x${newSize}`
+            // Update active state of all buttons
+            this.sizeSelector.querySelectorAll('.size-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            customSizeButton.classList.add('active');
+        });
+
+        this.sizeSelector.appendChild(customSizeButton);
     }
 
     initializeWinButtons() {

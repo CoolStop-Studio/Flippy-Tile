@@ -15,11 +15,12 @@ class SeededRandom {
 
 class TileFlipGame {
     constructor(gridSize = 5) {
-        this.GRID_SIZES = [3, 4, 5, 6, 7, 9, 11, 13, 15, 20, 50, 200];
+        this.GRID_SIZES = [3, 4, 5, 6, 7, 9, 11, 13, 15, 20, 50];
         this.TARGET_GRID_SIZE = window.innerHeight / 1.8; // Target size for all grids
         this.BASE_CURSOR_BORDER = 3; // Fixed cursor border width
 
         this.gridSize = gridSize;
+        this.customSize;
         this.gameContainer = document.getElementById('game');
         this.cursor = document.getElementById('cursor');
         this.winMessage = document.getElementById('winMessage');
@@ -141,10 +142,38 @@ class TileFlipGame {
 
             let newSize;
             let valid = false;
+
             while(!valid) {
                 newSize = prompt("Size?")
-                if(newSize)
+
+                if(!newSize) {
+                    if(this.customSize) {
+                        newSize = this.customSize;
+                    }
+                    newSize = 5;
+                    break;
+                }
+
+                if(Number(newSize)) {
+                    if (!(Number(newSize > 100)) && !(Number(newSize) < 2)) {
+                        this.customSize = newSize;
+                        valid = true;
+                    }
+                    if (Number(newSize) > 100 && !(Number(newSize) > 300) && !(Number(newSize) < 2) ) {
+                        if(confirm("This is a very large size! Are you sure you want to continue?")) {
+                            this.customSize = newSize;
+                            valid = true;
+                        }
+                    } else if (Number(newSize) > 300) {
+                        alert("Needs to be 300 or less")
+                    } else if (Number(newSize) < 2) {
+                        alert("Needs to be greater than 1")
+                    }
+                } else {
+                    alert("Invalid input: " + newSize)
+                }
             }
+
             this.changeGridSize(newSize);
             customSizeButton.textContent = `${newSize}x${newSize}`
             // Update active state of all buttons

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TileFlip Pattern Finder</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+            padding: 20px;
+        }
+        .game-container {
+            display: grid;
+            gap: 2px;
+            background: #ddd;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .tile {
+            width: 30px;
+            height: 30px;
+            background: white;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .tile.black {
+            background: #333;
+        }
+        .tile.center {
+            border: 2px solid #ff0000;
+        }
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            background: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        button:hover:not(:disabled) {
+            background: #45a049;
+        }
+        input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+        .progress {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>TileFlip Pattern Finder</h1>
+    <div class="controls">
+        <input type="number" id="sizeInput" placeholder="Grid size" min="2" max="100">
+        <button id="findSeed">Find Pattern Seed</button>
+        <button id="stopSearch" disabled>Stop Search</button>
+    </div>
+    <div id="game" class="game-container"></div>
+    <div id="result" class="result"></div>
+    <div id="progress" class="progress"></div>
+
+    <script>
+        class SeededRandom {
+            constructor(seed = Math.floor(Math.random() * 1000000)) {
+                this.seed = seed;
+            }
+
+            next() {
+                let result = this.seed;
+                result ^= result << 13;
+                result ^= result >> 17;
+                result ^= result << 5;
+                this.seed = result;
+                return (result >>> 0) / 4294967296;
+            }
+        }
+
+        class SeedFinder {
+            constructor() {
+                this.gameContainer = document.getElementById('game');
+                this.sizeInput = document.getElementById('sizeInput');
+                this.resultDiv = document.getElementById('result');
+                this.progressDiv = document.getElementById('progress');
+                this.findButton = document.getElementById('findSeed');
+                this.stopButton = document.getElementById('stopSearch');
+                this.setupEventListeners();
+                this.isSearching = false;
+                this.currentSeed = 0;
+                this.attempts = 0;
+                this.startTime = 0;
+                this.batchSize = 100;
+            }
+
+            isCenterTile(x, y, size) {
+                let centerX, centerY;
+                
+                if (size % 2 === 0) {
+                    // For even sizes, shift the center half a tile down and right
+                    centerX = size / 2 - 1;
+                    centerY = size / 2 - 1;
+                } else {
+                    // For odd sizes, the center is exactly in the middle
+                    centerX = Math.floor(size / 2) - 1;
+                    centerY = Math.floor(size / 2) - 1;
+                }
+                
+                // Check if the current tile is within the 3x3 grid centered at (centerX, centerY)
+                return x >= centerX && x < centerX + 3 && 
+                       y >= centerY && y < centerY + 3;
+            }
+
+            getRegions(size, tiles) {
+                let centerTiles = [];
+                let outerTiles = [];
+                
+                for (let y = 0; y < size; y++) {
+                    for (let x = 0; x < size; x++) {
+                        const idx = y * size + x;
+                        if (this.isCenterTile(x, y, size)) {
+                            centerTiles.push(tiles[idx]);
+                        } else {
+                            outerTiles.push(tiles[idx]);
+                        }
+                    }
+                }
+
+                return { centerTiles, outerTiles };
+            }
+
+            checkPattern(size, tiles) {
+                const { centerTiles, outerTiles } = this.getRegions(size, tiles);
+                
+                // Check if all outer tiles are the same color
+                const outerColor = outerTiles[0];
+                const outerMatch = outerTiles.every(tile => tile === outerColor);
+                
+                if (!outerMatch) return false;
+
+                // Check if 75% or more of center tiles match the outer color
+                const centerMatches = centerTiles.filter(tile => tile === outerColor).length;
+                const centerPercentage = (centerMatches / centerTiles.length) * 100;
+
+                return centerPercentage >= 75;
+            }
+
+            createGrid(size, seed) {
+                this.gameContainer.style.gridTemplateColumns = `repeat(${size}, 30px)`;
+                const rng = new SeededRandom(seed);
+                const tiles = [];
+                
+                // Generate tile states
+                for (let i = 0; i < size * size; i++) {
+                    tiles.push(rng.next() > 0.5);
+                }
+                
+                // Only update DOM for matching patterns
+                if (this.checkPattern(size, tiles)) {
+                    this.gameContainer.innerHTML = '';
+                    for (let y = 0; y < size; y++) {
+                        for (let x = 0; x < size; x++) {
+                            const idx = y * size + x;
+                            const tile = document.createElement('div');
+                            tile.className = 'tile';
+                            
+                            if (tiles[idx]) {
+                                tile.classList.add('black');
+                            }
+                            
+                            if (this.isCenterTile(x, y, size)) {
+                                tile.classList.add('center');
+                            }
+                            
+                            this.gameContainer.appendChild(tile);
+                        }
+                    }
+                }
+                
+                return tiles;
+            }
+
+            updateProgress() {
+                const timeSpent = (Date.now() - this.startTime) / 1000;
+                const seedsPerSecond = Math.floor(this.attempts / timeSpent);
+                this.progressDiv.textContent = 
+                    `Searching... Attempts: ${this.attempts.toLocaleString()} | ` +
+                    `Time: ${timeSpent.toFixed(1)}s | ` +
+                    `Speed: ${seedsPerSecond.toLocaleString()} seeds/s`;
+            }
+
+            async searchBatch(size) {
+                for (let i = 0; i < this.batchSize && this.isSearching; i++) {
+                    const tiles = this.createGrid(size, this.currentSeed);
+                    if (this.checkPattern(size, tiles)) {
+                        const { centerTiles, outerTiles } = this.getRegions(size, tiles);
+                        const outerColor = outerTiles[0] ? 'black' : 'white';
+                        const centerMatches = centerTiles.filter(t => t === outerTiles[0]).length;
+                        const centerPercent = (centerMatches / centerTiles.length * 100).toFixed(1);
+                        
+                        const timeSpent = (Date.now() - this.startTime) / 1000;
+                        this.resultDiv.textContent = 
+                            `Found seed: ${this.currentSeed} ` +
+                            `(outer: ${outerColor}, center: ${centerPercent}% matching) ` +
+                            `in ${timeSpent.toFixed(2)}s after ${this.attempts.toLocaleString()} attempts`;
+                        this.stopSearch();
+                        return true;
+                    }
+                    this.currentSeed = (this.currentSeed + 1) % 2147483647;
+                    this.attempts++;
+                }
+
+                if (this.attempts % (this.batchSize * 2) === 0) {
+                    this.updateProgress();
+                }
+
+                if (this.isSearching) {
+                    requestAnimationFrame(() => this.searchBatch(size));
+                }
+                return false;
+            }
+
+            startSearch() {
+                const size = parseInt(this.sizeInput.value);
+                if (size >= 3) {
+                    this.isSearching = true;
+                    this.attempts = 0;
+                    this.currentSeed = Math.floor(Math.random() * 1000000);
+                    this.startTime = Date.now();
+                    this.resultDiv.textContent = 'Searching for pattern seed...';
+                    this.findButton.disabled = true;
+                    this.stopButton.disabled = false;
+                    this.searchBatch(size);
+                } else {
+                    alert('Please enter a grid size of 3 or larger');
+                }
+            }
+
+            stopSearch() {
+                this.isSearching = false;
+                this.findButton.disabled = false;
+                this.stopButton.disabled = true;
+            }
+
+            setupEventListeners() {
+                this.findButton.addEventListener('click', () => this.startSearch());
+                this.stopButton.addEventListener('click', () => this.stopSearch());
+            }
+        }
+
+        // Initialize the seed finder
+        const seedFinder = new SeedFinder();
+    </script>
+</body>
+</html>

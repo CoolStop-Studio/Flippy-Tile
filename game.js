@@ -369,6 +369,10 @@ class TileFlipGame {
         this.resetStopwatch();
     }
 
+    customSeed() {
+        prompt("What seed?")
+    }
+
     setupEventListeners() {
         const keyboardControls = {
             'ArrowUp': () => this.moveCursor(0, -1),
@@ -389,7 +393,8 @@ class TileFlipGame {
             'e': () => this.reset(false),
             'r': () => this.reset(false),
             'f': () => this.reset(false),
-            'Enter': () => this.reset(false)
+            'Enter': () => this.reset(false),
+            '0': () => this.customSeed()
         };
         document.addEventListener('keydown', (event) => {
             if (event.shiftKey && event.key === 'Backspace') {

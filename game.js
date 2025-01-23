@@ -375,21 +375,23 @@ class TileFlipGame {
 
     setupEventListeners() {
         const keyboardControls = {
+
             'ArrowUp': () => this.moveCursor(0, -1),
             'w': () => this.moveCursor(0, -1),
+            'p': () => this.moveCursor(0, -1),
             'ArrowDown': () => this.moveCursor(0, 1),
             's': () => this.moveCursor(0, 1),
+            ';': () => this.moveCursor(0, 1),
             'ArrowLeft': () => this.moveCursor(-1, 0),
             'a': () => this.moveCursor(-1, 0),
+            'l': () => this.moveCursor(-1, 0),
             'ArrowRight': () => this.moveCursor(1, 0),
             'd': () => this.moveCursor(1, 0),
+            "'": () => this.moveCursor(1, 0),
+
             ' ': () => this.reset(true),
             'q': () => this.reset(true),
-            'Shift': (e) => {
-                if (e.key === 'Shift' && e.location === 2) {
-                    this.reset(true);
-                }
-            },
+            'Shift': () => this.reset(true),
             'e': () => this.reset(false),
             'r': () => this.reset(false),
             'f': () => this.reset(false),
@@ -401,7 +403,7 @@ class TileFlipGame {
                 this.clearAllBestTimes();
                 return;
             }
-
+            alert(event.key)
             const handler = keyboardControls[event.key];
             if (handler) {
                 event.preventDefault();

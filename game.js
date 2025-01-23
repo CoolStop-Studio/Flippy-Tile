@@ -403,7 +403,7 @@ class TileFlipGame {
                 this.clearAllBestTimes();
                 return;
             }
-            alert(event.key)
+            
             const handler = keyboardControls[event.key];
             if (handler) {
                 event.preventDefault();

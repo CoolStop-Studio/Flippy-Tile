@@ -21,6 +21,7 @@ class TileFlipGame {
 
         this.gridSize = gridSize;
         this.customSize;
+        this.Bookmarks = this.getBookmarks();
         this.gameContainer = document.getElementById('game');
         this.cursor = document.getElementById('cursor');
         this.winMessage = document.getElementById('winMessage');
@@ -30,6 +31,7 @@ class TileFlipGame {
         this.stopwatch = document.getElementById('stopwatch');
         this.bestTimeDisplay = document.getElementById('bestTime');
         this.sizeSelector = document.getElementById('sizeSelector');
+        this.bookmarkSelector = document.getElementById('bookmarkSelector');
 
         this.cursorPosition = { x: Math.floor(gridSize / 2), y: Math.floor(gridSize / 2) };
         this.gameWon = false;
@@ -40,7 +42,8 @@ class TileFlipGame {
         this.rng = new SeededRandom(this.currentSeed);
 
         this.initializeSizeSelector();
-        this.initializeWinButtons();
+        this.initializeBookmarkSelector();
+        this.initializeButtons();
         this.initializeGame();
         this.setupEventListeners();
         this.updateBestTimeDisplay();
@@ -97,13 +100,13 @@ class TileFlipGame {
         tileStyle.id = 'dynamic-game-styles';
         document.head.appendChild(tileStyle);
     }
+
     // In your TileFlipGame class, update the initializeSizeSelector method:
     initializeSizeSelector() {
         // Clear existing buttons first
         this.sizeSelector.innerHTML = '';
 
         this.GRID_SIZES.forEach(size => {
-            
             const button = document.createElement('button');
             button.textContent = `${size}x${size}`; // Using × instead of x
             button.classList.add('size-btn');
@@ -186,12 +189,63 @@ class TileFlipGame {
         this.sizeSelector.appendChild(customSizeButton);
     }
 
-    initializeWinButtons() {
+    initializeBookmarkSelector() {
+        // Clear existing buttons first
+        this.bookmarkSelector.innerHTML = '';
+
+
+        const customSizeButton = document.createElement('button')
+        customSizeButton.textContent = "+"; // Using × instead of x
+        customSizeButton.classList.add('bookmark-btn');
+            
+        // Add click event listener
+        customSizeButton.addEventListener('click', (e) => {
+            e.preventDefault(); // Prevent any default button behavior
+
+            let name = prompt("Name?");
+            if(name) {
+                let seed = prompt("Seed? (Leave black for current seed)");
+                if(seed) {
+                    this.newBookmark(name, seed)
+                } else {
+                    this.newBookmark(name, this.currentSeed)
+                }
+            }            
+
+            this.newBookmark(name, seed)
+        });
+
+        this.bookmarkSelector.appendChild(customSizeButton);
+
+
+
+        this.Bookmarks.forEach(item => {
+            
+            const button = document.createElement('button');
+            button.textContent = item.name; // Using × instead of x
+            button.classList.add('bookmark-btn');
+            if (this.seed === item.value) {
+                button.classList.add('active');
+            }
+            
+            // Add click event listener
+            button.addEventListener('click', (e) => {
+                e.preventDefault(); // Prevent any default button behavior
+                this.reset(item.value)
+            });
+
+            this.bookmarkSelector.appendChild(button);
+
+        });
+    }
+
+
+    initializeButtons() {
         this.nextButton.addEventListener('click', () => {
-            this.reset(true);
+            this.reset(Math.floor(Math.random() * 1000000));
         });
         this.retryButton.addEventListener('click', () => {
-            this.reset(false);
+            this.reset(this.currentSeed);
         });
     }
 
@@ -211,6 +265,30 @@ class TileFlipGame {
         return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(Math.floor(milliseconds)).padStart(2, '0')}`;
     }
 
+    getBookmarks() {
+        return [];
+    }
+
+    newBookmark(name, value) {
+        let obj = { name: name, value: value }
+        this.Bookmarks.push(obj);
+        
+        const button = document.createElement('button');
+        button.textContent = name; // Using × instead of x
+        button.classList.add('bookmark-btn');
+        if (this.seed === value) {
+            button.classList.add('active');
+        }
+            
+        // Add click event listener
+        button.addEventListener('click', (e) => {
+            e.preventDefault(); // Prevent any default button behavior
+            this.reset(value)
+        });
+
+        this.bookmarkSelector.appendChild(button);
+    }
+
     getBestTime() {
         const bestTimes = JSON.parse(localStorage.getItem('tileFlipBestTimes') || '{}');
         return bestTimes[this.gridSize] !== undefined ? bestTimes[this.gridSize] : null;
@@ -227,7 +305,6 @@ class TileFlipGame {
             this.updateBestTimeDisplay();
         }
     }
-
 
     clearAllBestTimes() {
         localStorage.removeItem('tileFlipBestTimes');
@@ -351,7 +428,7 @@ class TileFlipGame {
         this.updateBestTimeDisplay();
     }
 
-    reset(newSeed = true) {
+    reset(newSeed = null) {
         this.gameWon = false;
         this.gameStarted = false;
         this.cursorPosition = {
@@ -360,9 +437,7 @@ class TileFlipGame {
         };
         this.winMessage.classList.remove('show');
 
-        if (newSeed) {
-            this.currentSeed = Math.floor(Math.random() * 1000000);
-        }
+        this.currentSeed = newSeed;
 
         this.createGrid();
         this.updateCursor();
@@ -389,14 +464,16 @@ class TileFlipGame {
             'd': () => this.moveCursor(1, 0),
             "'": () => this.moveCursor(1, 0),
 
-            ' ': () => this.reset(true),
-            'q': () => this.reset(true),
-            'Shift': () => this.reset(true),
-            'e': () => this.reset(false),
-            'r': () => this.reset(false),
-            'f': () => this.reset(false),
-            'Enter': () => this.reset(false),
-            '0': () => this.customSeed()
+            ' ': () => this.reset(Math.floor(Math.random() * 1000000)),
+            'q': () => this.reset(Math.floor(Math.random() * 1000000)),
+            'Shift': () => this.reset(Math.floor(Math.random() * 1000000)),
+
+            'e': () => this.reset(this.currentSeed),
+            'r': () => this.reset(this.currentSeed),
+            'f': () => this.reset(this.currentSeed),
+            'Enter': () => this.reset(this.currentSeed),
+
+            '0': () => this.reset(100)
         };
         document.addEventListener('keydown', (event) => {
             if (event.shiftKey && event.key === 'Backspace') {
@@ -413,5 +490,9 @@ class TileFlipGame {
     }
 }
 
+try {
+    const game = new TileFlipGame(5);
+} catch(err) {
+    alert(err)
+}
 // Initialize game with default 5x5 grid
-const game = new TileFlipGame(5);

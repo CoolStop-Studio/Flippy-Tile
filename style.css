@@ -3,7 +3,7 @@
   --tile-light: white;
   --tile-dark: rgb(20, 20, 20);
   --cursor-color: red;
-  --header-bg: rgba(0, 0, 0, 0.8);
+  --win-bg: rgba(0, 0, 0);
   --sidebar-bg: rgba(0, 0, 0, 0.4);
   --button-bg: #444;
   --button-hover: #555;
@@ -21,6 +21,10 @@ body {
   justify-content: center;
   align-items: center;
 }
+
+
+
+
 
 /* Game Layout */
 .game-main {
@@ -42,12 +46,16 @@ body {
   height: 100%;
 }
 
+
+
+
+
 /* Header Styling */
 .game-header {
   position: fixed;
   top: 3vh;
   width: 20vw;
-  background: var(--header-bg);
+  background: var(--sidebar-bg);
   padding: 1.5vh 2vw;
   border-radius: 8px;
   z-index: 10;
@@ -71,6 +79,10 @@ body {
   font-size: 2vh;
 }
 
+
+
+
+
 /* Sidebar Styling */
 .game-sidebar {
   position: absolute; /* breaks the sidebar */
@@ -86,8 +98,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1vh;
-  max-height: 90vh;
-  overflow-y: auto;
+  height: 75vh;
+  overflow-y: scroll;
 }
 
 .game-sidebar h2 {
@@ -124,6 +136,66 @@ body {
   background: var(--button-active);
 }
 
+
+
+
+/* Sidebar Styling */
+.game-sidebar2 {
+  position: absolute; /* breaks the sidebar */
+  z-index: 100;
+  right: 2vw;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12vw;
+  background: var(--sidebar-bg);
+  padding: 1.5vh 1vw;
+  
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 1vh;
+  height: 75vh;
+  overflow-y: scroll;
+}
+
+.game-sidebar2 h2 {
+  margin: 0;
+  text-align: center;
+  padding: 1vh 0;
+  font-size: 2vh;
+}
+
+/* Size Selector */
+.bookmark-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 1vh;
+  width: 100%;
+}
+
+.bookmark-btn {
+  background: var(--button-bg);
+  border: none;
+  color: white;
+  padding: 1vh;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 1.8vh;
+}
+
+.bookmark-btn:hover {
+  background: var(--button-hover);
+}
+
+.bookmark-btn.active {
+  background: var(--button-active);
+}
+
+
+
+
+
 /* Game Grid */
 .game-container {
   display: grid;
@@ -155,18 +227,25 @@ body {
   z-index: 5;
 }
 
+
+
+
+
 /* Win Message */
 .win-message {
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
   position: fixed;
-  top: 50%;
-  left: 50%;
+  top: 50vh;
+  left: 50vw;
   transform: translate(-50%, -50%);
-  background: var(--header-bg);
+  background: var(--win-bg);
   padding: 3rem;
   border-radius: 10px;
-  display: none;
-  transition: display 0.2s;
-  width: 30%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  width: 30vw;
   z-index: 100;
 }
 
@@ -199,8 +278,14 @@ body {
 }
 
 .win-message.show {
+  pointer-events: auto;
+  opacity: 0.9;
   display: block;
 }
+
+
+
+
 
 /* Aspect Ratio Based Layout */
 @media (max-aspect-ratio: 4/5) {

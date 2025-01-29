@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flippy Tile</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/x-icon" href="icon.png">
+</head>
+
+<body>
+  <div class="game-sidebar2">
+    <h2>Bookmarks</h2>
+    <div class="bookmark-selector" id="bookmarkSelector">
+      <!-- Buttons will be added here by JavaScript -->
+    </div>
+  </div>
+
+  <div class="game-sidebar">
+    <h2>Grid Size</h2>
+    <div class="size-selector" id="sizeSelector">
+      <!-- Buttons will be added here by JavaScript -->
+    </div>
+  </div>
+
+  <!-- Main game area -->
+  <div class="game-main">
+    <!-- Header with timers -->
+    <div class="game-header">
+      <div class="times">
+        <div class="time-display">
+          Current Time<br>
+          <span id="stopwatch">00:00.00</span>
+        </div>
+        <div class="time-display">
+          Best Time<br>
+          <span id="bestTime">--:--:--</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game area with container and cursor -->
+    <div class="game-area">
+      <div class="game-container" id="game"></div>
+      <div class="cursor" id="cursor"></div>
+    </div>
+  </div>
+
+  <!-- Win message overlay -->
+  <div class="win-message" id="winMessage">
+    <div class="message-display">You win!</div>
+    <div id="win-time">--:--:--</div>
+    <div id="win-buttons">
+      <div class="win-buttons" id="retry-button">Retry</div>
+      <div class="win-buttons" id="next-button">Next</div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+
+</html>

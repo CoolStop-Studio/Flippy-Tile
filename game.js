@@ -21,7 +21,7 @@ class TileFlipGame {
 
         this.gridSize = gridSize;
         this.customSize;
-        this.Bookmarks = this.getBookmarks();
+        this.Bookmarks = JSON.parse(localStorage.getItem('tileFlipBookmarks') || '{}');;
         this.gameContainer = document.getElementById('game');
         this.cursor = document.getElementById('cursor');
         this.winMessage = document.getElementById('winMessage');
@@ -218,25 +218,26 @@ class TileFlipGame {
         this.bookmarkSelector.appendChild(customSizeButton);
 
 
-
-        this.Bookmarks.forEach(item => {
-            
-            const button = document.createElement('button');
-            button.textContent = item.name; // Using × instead of x
-            button.classList.add('bookmark-btn');
-            if (this.seed === item.value) {
-                button.classList.add('active');
-            }
-            
-            // Add click event listener
-            button.addEventListener('click', (e) => {
-                e.preventDefault(); // Prevent any default button behavior
-                this.reset(item.value)
+        if (this.Bookmarks[this.gridSize]) {
+            this.Bookmarks[this.gridSize].forEach(item => {
+                const button = document.createElement('button');
+                button.textContent = item.name; // Using × instead of x
+                button.classList.add('bookmark-btn');
+                if (this.seed === item.value) {
+                    button.classList.add('active');
+                }
+                
+                // Add click event listener
+                button.addEventListener('click', (e) => {
+                    e.preventDefault(); // Prevent any default button behavior
+                    this.reset(item.value)
+                });
+    
+                this.bookmarkSelector.appendChild(button);
+    
             });
-
-            this.bookmarkSelector.appendChild(button);
-
-        });
+        }
+        
     }
 
 
@@ -266,27 +267,24 @@ class TileFlipGame {
     }
 
     getBookmarks() {
-        return [];
+        const allBookmarks = JSON.parse(localStorage.getItem('tileFlipBookmarks') || '{}');
+        return allBookmarks !== undefined ? allBookmarks : {};
     }
 
     newBookmark(name, value) {
-        let obj = { name: name, value: value }
-        this.Bookmarks.push(obj);
         
-        const button = document.createElement('button');
-        button.textContent = name; // Using × instead of x
-        button.classList.add('bookmark-btn');
-        if (this.seed === value) {
-            button.classList.add('active');
+        let obj = { name: name, value: value }
+        
+        if (this.Bookmarks[this.gridSize]) {
+            this.Bookmarks[this.gridSize].push(obj);
+        } else {
+            this.Bookmarks[this.gridSize] = [obj]
         }
-            
-        // Add click event listener
-        button.addEventListener('click', (e) => {
-            e.preventDefault(); // Prevent any default button behavior
-            this.reset(value)
-        });
+        
+        localStorage.setItem('tileFlipBookmarks', JSON.stringify(this.Bookmarks));
 
-        this.bookmarkSelector.appendChild(button);
+        
+        this.initializeBookmarkSelector()
     }
 
     getBestTime() {
@@ -424,6 +422,7 @@ class TileFlipGame {
             y: Math.floor(newSize / 2)
         };
         this.updateSizeSelector();
+        this.initializeBookmarkSelector();
         this.reset(true);
         this.updateBestTimeDisplay();
     }

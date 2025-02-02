@@ -105,6 +105,53 @@ class TileFlipGame {
     initializeSizeSelector() {
         // Clear existing buttons first
         this.sizeSelector.innerHTML = '';
+        
+        const newSizeButton = document.getElementById("new-size-btn")
+        // Add click event listener
+        newSizeButton.addEventListener('click', (e) => {
+            e.preventDefault(); // Prevent any default button behavior
+
+            let newSize;
+            let valid = false;
+
+            while(!valid) {
+                newSize = prompt("Size?")
+
+                if(!newSize) {
+                    if(this.customSize) {
+                        newSize = this.customSize;
+                    }
+                    newSize = 5;
+                    break;
+                }
+
+                if(Number(newSize)) {
+                    if (!(Number(newSize > 100)) && !(Number(newSize) < 2)) {
+                        this.customSize = newSize;
+                        valid = true;
+                    }
+                    if (Number(newSize) > 75 && !(Number(newSize) > 100) && !(Number(newSize) < 2) ) {
+                        if(confirm("This is a very large size! Are you sure you want to continue?")) {
+                            this.customSize = newSize;
+                            valid = true;
+                        }
+                    } else if (Number(newSize) > 100) {
+                        alert("Needs to be 100 or less")
+                    } else if (Number(newSize) < 2) {
+                        alert("Needs to be greater than 1")
+                    }
+                } else {
+                    alert("Invalid input: " + newSize)
+                }
+            }
+
+            this.changeGridSize(newSize);
+            // Update active state of all buttons
+            this.sizeSelector.querySelectorAll('.size-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            newSizeButton.classList.add('active');
+        });
 
         this.GRID_SIZES.forEach(size => {
             const button = document.createElement('button');
@@ -131,75 +178,16 @@ class TileFlipGame {
             this.sizeSelector.appendChild(button);
 
         });
-
-        const customSizeButton = document.createElement('button')
-        customSizeButton.textContent = "?x?"; // Using × instead of x
-        customSizeButton.classList.add('size-btn');
-        if (!this.GRID_SIZES.includes(this.gridSize)) {
-            customSizeButton.classList.add('active');
-        }
-            
-        // Add click event listener
-        customSizeButton.addEventListener('click', (e) => {
-            e.preventDefault(); // Prevent any default button behavior
-
-            let newSize;
-            let valid = false;
-
-            while(!valid) {
-                newSize = prompt("Size?")
-
-                if(!newSize) {
-                    if(this.customSize) {
-                        newSize = this.customSize;
-                    }
-                    newSize = 5;
-                    break;
-                }
-
-                if(Number(newSize)) {
-                    if (!(Number(newSize > 100)) && !(Number(newSize) < 2)) {
-                        this.customSize = newSize;
-                        valid = true;
-                    }
-                    if (Number(newSize) > 100 && !(Number(newSize) > 300) && !(Number(newSize) < 2) ) {
-                        if(confirm("This is a very large size! Are you sure you want to continue?")) {
-                            this.customSize = newSize;
-                            valid = true;
-                        }
-                    } else if (Number(newSize) > 300) {
-                        alert("Needs to be 300 or less")
-                    } else if (Number(newSize) < 2) {
-                        alert("Needs to be greater than 1")
-                    }
-                } else {
-                    alert("Invalid input: " + newSize)
-                }
-            }
-
-            this.changeGridSize(newSize);
-            customSizeButton.textContent = `${newSize}x${newSize}`
-            // Update active state of all buttons
-            this.sizeSelector.querySelectorAll('.size-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            customSizeButton.classList.add('active');
-        });
-
-        this.sizeSelector.appendChild(customSizeButton);
     }
 
     initializeBookmarkSelector() {
         // Clear existing buttons first
         this.bookmarkSelector.innerHTML = '';
 
-
-        const customSizeButton = document.createElement('button')
-        customSizeButton.textContent = "+"; // Using × instead of x
-        customSizeButton.classList.add('bookmark-btn');
-            
+        
+        const newBookmarkButton = document.getElementById("new-bookmark-btn")
         // Add click event listener
-        customSizeButton.addEventListener('click', (e) => {
+        newBookmarkButton.addEventListener('click', (e) => {
             e.preventDefault(); // Prevent any default button behavior
 
             let name = prompt("Name?");
@@ -214,8 +202,6 @@ class TileFlipGame {
 
             this.newBookmark(name, seed)
         });
-
-        this.bookmarkSelector.appendChild(customSizeButton);
 
 
         if (this.Bookmarks[this.gridSize]) {

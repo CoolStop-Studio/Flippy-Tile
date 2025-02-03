@@ -19,6 +19,7 @@ class TileFlipGame {
         this.TARGET_GRID_SIZE = window.innerHeight / 1.8; // Target size for all grids
         this.BASE_CURSOR_BORDER = 3; // Fixed cursor border width
 
+        this.version = "v0.94-beta"
         this.gridSize = gridSize;
         this.customSize;
         this.Bookmarks = JSON.parse(localStorage.getItem('tileFlipBookmarks') || '{}');;
@@ -301,6 +302,7 @@ class TileFlipGame {
     }
 
     initializeGame() {
+        document.getElementById("version").innerHTML = this.version;
         this.createGrid();
         this.updateCursor();
     }

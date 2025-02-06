@@ -19,7 +19,7 @@ class TileFlipGame {
         this.TARGET_GRID_SIZE = window.innerHeight / 1.8; // Target size for all grids
         this.BASE_CURSOR_BORDER = 3; // Fixed cursor border width
 
-        this.version = "v0.94-beta.2"
+        this.version = "v0.95-beta"
         this.gridSize = gridSize;
         this.customSize;
         this.Bookmarks = JSON.parse(localStorage.getItem('tileFlipBookmarks') || '{}');;
@@ -183,7 +183,7 @@ class TileFlipGame {
 
     initializeBookmarkSelector() {
         // Clear existing buttons first
-        this.bookmarkSelector.innerHTML = '';
+        this.reloadBookmarkSelector();
 
         
         const newBookmarkButton = document.getElementById("new-bookmark-btn")
@@ -201,9 +201,14 @@ class TileFlipGame {
                 }
             }            
 
-            this.newBookmark(name, seed)
         });
 
+
+        
+    }
+
+    reloadBookmarkSelector() {
+        this.bookmarkSelector.innerHTML = '';
 
         if (this.Bookmarks[this.gridSize]) {
             this.Bookmarks[this.gridSize].forEach(item => {
@@ -224,7 +229,6 @@ class TileFlipGame {
     
             });
         }
-        
     }
 
 
@@ -271,7 +275,7 @@ class TileFlipGame {
         localStorage.setItem('tileFlipBookmarks', JSON.stringify(this.Bookmarks));
 
         
-        this.initializeBookmarkSelector()
+        this.reloadBookmarkSelector()
     }
 
     getBestTime() {
@@ -291,9 +295,13 @@ class TileFlipGame {
         }
     }
 
-    clearAllBestTimes() {
-        localStorage.removeItem('tileFlipBestTimes');
+    clearLocalStorage() {
+        if (confirm("Clear all bookmarks & times?")) {
+            localStorage.clear()
+        }
+        this.Bookmarks = {};
         this.updateBestTimeDisplay();
+        this.reloadBookmarkSelector();
     }
 
     updateBestTimeDisplay() {
@@ -410,7 +418,7 @@ class TileFlipGame {
             y: Math.floor(newSize / 2)
         };
         this.updateSizeSelector();
-        this.initializeBookmarkSelector();
+        this.reloadBookmarkSelector();
         this.reset(Math.floor(Math.random() * 1000000));
         this.updateBestTimeDisplay();
     }
@@ -460,14 +468,9 @@ class TileFlipGame {
             'f': () => this.reset(this.currentSeed),
             'Enter': () => this.reset(this.currentSeed),
 
-            '0': () => this.reset(100)
+            '=': () => this.clearLocalStorage(),
         };
         document.addEventListener('keydown', (event) => {
-            if (event.shiftKey && event.key === 'Backspace') {
-                this.clearLocalStorage();
-                return;
-            }
-            
             const handler = keyboardControls[event.key];
             if (handler) {
                 event.preventDefault();

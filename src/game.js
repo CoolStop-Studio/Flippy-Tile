@@ -19,7 +19,7 @@ class TileFlipGame {
         this.TARGET_GRID_SIZE = window.innerHeight / 1.8; // Target size for all grids
         this.BASE_CURSOR_BORDER = 3; // Fixed cursor border width
 
-        this.version = "v0.95-beta"
+        this.version = "v0.96-beta"
         this.gridSize = gridSize;
         this.customSize;
         this.Bookmarks = JSON.parse(localStorage.getItem('tileFlipBookmarks') || '{}');;
@@ -170,6 +170,7 @@ class TileFlipGame {
 
                     // Update active state of all buttons
                     this.sizeSelector.querySelectorAll('.size-btn').forEach(btn => {
+                        
                         btn.classList.remove('active');
                     });
                     button.classList.add('active');
@@ -298,10 +299,10 @@ class TileFlipGame {
     clearLocalStorage() {
         if (confirm("Clear all bookmarks & times?")) {
             localStorage.clear()
+            this.Bookmarks = {};
+            this.updateBestTimeDisplay();
+            this.reloadBookmarkSelector();
         }
-        this.Bookmarks = {};
-        this.updateBestTimeDisplay();
-        this.reloadBookmarkSelector();
     }
 
     updateBestTimeDisplay() {

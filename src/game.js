@@ -1,9 +1,12 @@
+
+// Random seed generator
+// Not important how it works, it just generates random seed
 class SeededRandom {
     constructor(seed = Math.floor(Math.random() * 1000000)) {
         this.seed = seed;
     }
 
-    next() {
+    next() { // Returns a new random seed
         let result = this.seed;
         result ^= result << 13;
         result ^= result >> 17;
@@ -13,35 +16,38 @@ class SeededRandom {
     }
 }
 
+// The actual game
 class TileFlipGame {
-    constructor(gridSize = 5) {
-        this.GRID_SIZES = [3, 4, 5, 6, 7, 9, 11, 13, 15, 20, 50];
-        this.TARGET_GRID_SIZE = window.innerHeight / 1.8; // Target size for all grids
-        this.BASE_CURSOR_BORDER = 3; // Fixed cursor border width
+    constructor() { // Define constants
+        this.GRID_SIZES = [3, 4, 5, 6, 7, 9, 11, 13, 15, 20, 50]; // Starting grid sizes
+        this.TARGET_GRID_SIZE = window.innerHeight / 1.8; // The tile grid size, not amount of tiles, the actual pixel width
+        this.BASE_CURSOR_BORDER = 3; // Cusor thickness
 
-        this.version = "v0.96-beta"
-        this.gridSize = gridSize;
-        this.customSize;
-        this.Bookmarks = JSON.parse(localStorage.getItem('tileFlipBookmarks') || '{}');;
-        this.gameContainer = document.getElementById('game');
-        this.cursor = document.getElementById('cursor');
-        this.winMessage = document.getElementById('winMessage');
-        this.winTimer = document.getElementById('win-time')
-        this.nextButton = document.getElementById('next-button');
-        this.retryButton = document.getElementById('retry-button');
-        this.stopwatch = document.getElementById('stopwatch');
-        this.bestTimeDisplay = document.getElementById('bestTime');
-        this.sizeSelector = document.getElementById('sizeSelector');
-        this.bookmarkSelector = document.getElementById('bookmarkSelector');
+        this.version = "v0.96-beta" // Version
 
-        this.cursorPosition = { x: Math.floor(gridSize / 2), y: Math.floor(gridSize / 2) };
-        this.gameWon = false;
-        this.gameStarted = false;
-        this.timer = null;
-        this.elapsedTime = 0;
-        this.currentSeed = Math.floor(Math.random() * 1000000);
-        this.rng = new SeededRandom(this.currentSeed);
+        this.gridSize = 5; // Default tile amount when page loaded
+        this.customSize; // The + button in grid sizes, used to get size if its not in GRID_SIZES
+        this.Bookmarks = JSON.parse(localStorage.getItem('tileFlipBookmarks') || '{}');; // Get bookmarks if they exist in localstorage, else return empty object
+        this.gameContainer = document.getElementById('game'); // The entire game element
+        this.cursor = document.getElementById('cursor'); // The cursor element
+        this.winMessage = document.getElementById('winMessage'); // The win screen element
+        this.winTimer = document.getElementById('win-time'); // The win screen time element
+        this.nextButton = document.getElementById('next-button'); // The win screen next button element
+        this.retryButton = document.getElementById('retry-button'); // The win screen retry button element
+        this.stopwatch = document.getElementById('stopwatch'); // The current time in the topbar element
+        this.bestTimeDisplay = document.getElementById('bestTime'); // The best time in the topbar element
+        this.sizeSelector = document.getElementById('sizeSelector'); // The entire size sidebar element
+        this.bookmarkSelector = document.getElementById('bookmarkSelector'); // The entire bookmark sidebar element
 
+        this.cursorPosition = { x: Math.floor(gridSize / 2), y: Math.floor(gridSize / 2) }; // The cursors position in the grid, in tiles not pixels
+        this.gameWon = false; // Is the game won?
+        this.gameStarted = false; // Is the game started?
+        this.timer = null; // The timer interval
+        this.elapsedTime = 0; // Current time since started, not formatted
+        this.currentSeed = Math.floor(Math.random() * 1000000); // The current seed, set to random on page load
+        this.rng = new SeededRandom(this.currentSeed); // The seededRandom class from before, generates random numbers
+
+        // Initialization functions
         this.initializeSizeSelector();
         this.initializeBookmarkSelector();
         this.initializeButtons();
@@ -52,36 +58,32 @@ class TileFlipGame {
         window.addEventListener("resize", () => this.resizeWindow());
     }
 
-    resizeWindow() {
+    resizeWindow() { // On window resize, update TARGET_GRID_SIZE to match, and update the scaling for the game
         this.TARGET_GRID_SIZE = window.innerHeight / 2;
         this.updateStyles();
     }
 
-    calculateScaling() {
-        // Calculate tile size to make grid fill target size
-        const gap = Math.max(2, Math.floor(this.TARGET_GRID_SIZE / this.gridSize / 20)); // Dynamic gap size
+    calculateScaling() { // Calculate scaling based on TARGET_GRID_SIZE, for each CSS formatting property
+        const gap = Math.max(2, Math.floor(this.TARGET_GRID_SIZE / this.gridSize / 20));
         const availableSpace = this.TARGET_GRID_SIZE - (gap * (this.gridSize - 1));
         const tileSize = Math.floor(availableSpace / this.gridSize);
 
-        // Calculate border radius based on tile size
         const borderRadius = Math.max(2, Math.floor(tileSize / 12));
 
         return {
             tileSize,
             gap,
             borderRadius,
-            cursorBorder: this.BASE_CURSOR_BORDER // Keep cursor border consistent
+            cursorBorder: this.BASE_CURSOR_BORDER
         };
     }
 
-    updateStyles() {
+    updateStyles() { // Update styles for the tiles
         const { tileSize, gap, borderRadius, cursorBorder } = this.calculateScaling();
 
-        // Update CSS custom properties
         document.documentElement.style.setProperty('--tile-size', `${tileSize}px`);
         document.documentElement.style.setProperty('--gap-size', `${gap}px`);
 
-        // Update tile and cursor border radius, keeping cursor border width fixed
         const tileStyle = document.createElement('style');
         tileStyle.textContent = `
           .tile, .cursor {
@@ -92,7 +94,6 @@ class TileFlipGame {
           }
         `;
 
-        // Remove any previous dynamic styles
         const oldStyle = document.getElementById('dynamic-game-styles');
         if (oldStyle) {
             oldStyle.remove();
@@ -102,15 +103,13 @@ class TileFlipGame {
         document.head.appendChild(tileStyle);
     }
 
-    // In your TileFlipGame class, update the initializeSizeSelector method:
-    initializeSizeSelector() {
-        // Clear existing buttons first
+    initializeSizeSelector() { // Initialize the items on the size selector sidebar
         this.sizeSelector.innerHTML = '';
         
         const newSizeButton = document.getElementById("new-size-btn")
-        // Add click event listener
+
         newSizeButton.addEventListener('click', (e) => {
-            e.preventDefault(); // Prevent any default button behavior
+            e.preventDefault();
 
             let newSize;
             let valid = false;
@@ -147,7 +146,6 @@ class TileFlipGame {
             }
 
             this.changeGridSize(newSize);
-            // Update active state of all buttons
             this.sizeSelector.querySelectorAll('.size-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
@@ -156,19 +154,17 @@ class TileFlipGame {
 
         this.GRID_SIZES.forEach(size => {
             const button = document.createElement('button');
-            button.textContent = `${size}x${size}`; // Using × instead of x
+            button.textContent = `${size}x${size}`; 
             button.classList.add('size-btn');
             if (size === this.gridSize) {
                 button.classList.add('active');
             }
             
-            // Add click event listener
             button.addEventListener('click', (e) => {
-                e.preventDefault(); // Prevent any default button behavior
+                e.preventDefault(); 
                 if (size !== this.gridSize) {
                     this.changeGridSize(size);
 
-                    // Update active state of all buttons
                     this.sizeSelector.querySelectorAll('.size-btn').forEach(btn => {
                         
                         btn.classList.remove('active');
@@ -183,14 +179,13 @@ class TileFlipGame {
     }
 
     initializeBookmarkSelector() {
-        // Clear existing buttons first
         this.reloadBookmarkSelector();
 
         
         const newBookmarkButton = document.getElementById("new-bookmark-btn")
-        // Add click event listener
+
         newBookmarkButton.addEventListener('click', (e) => {
-            e.preventDefault(); // Prevent any default button behavior
+            e.preventDefault();
 
             let name = prompt("Name?");
             if(name) {
@@ -214,15 +209,14 @@ class TileFlipGame {
         if (this.Bookmarks[this.gridSize]) {
             this.Bookmarks[this.gridSize].forEach(item => {
                 const button = document.createElement('button');
-                button.textContent = item.name; // Using × instead of x
+                button.textContent = item.name;
                 button.classList.add('bookmark-btn');
                 if (this.seed === item.value) {
                     button.classList.add('active');
                 }
                 
-                // Add click event listener
                 button.addEventListener('click', (e) => {
-                    e.preventDefault(); // Prevent any default button behavior
+                    e.preventDefault();
                     this.reset(item.value)
                 });
     
@@ -288,7 +282,6 @@ class TileFlipGame {
         const bestTimes = JSON.parse(localStorage.getItem('tileFlipBestTimes') || '{}');
         const currentBest = bestTimes[this.gridSize];
 
-        // Ensure 0ms is handled correctly as a valid best time
         if (currentBest == null || time < currentBest) {
             bestTimes[this.gridSize] = time;
             localStorage.setItem('tileFlipBestTimes', JSON.stringify(bestTimes));
@@ -482,8 +475,7 @@ class TileFlipGame {
 }
 
 try {
-    const game = new TileFlipGame(5);
+    const game = new TileFlipGame();
 } catch(err) {
     alert(err)
 }
-// Initialize game with default 5x5 grid

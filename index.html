@@ -4,69 +4,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flippy Tile</title>
-  <link rel="stylesheet" href="src/style.css">
-  <link rel="icon" type="image/x-icon" href="src/assets/icon.png">
+  <title>Flippy Tile</title> <!-- page title -->
+  <link rel="stylesheet" href="src/style.css"> <!-- link css -->
+  <link rel="icon" type="image/x-icon" href="src/assets/icon.png"> <!-- page icon -->
 </head>
 
 <body>
-  <div class="info">
+  <div class="info"> <!-- Github link and version display -->
     <a id="github" href="https://github.com/CoolStop-Studio/Flippy-Tile" target="_blank">
       <img src="src/assets/github.png" alt="GitHub">
     </a>
-    <div id="version">v1.0</div> <!-- Replace with dynamic version if needed -->
+    <div id="version">v???</div>
   </div>
 
-  <div class="game-sidebar2">
+  <div class="game-sidebar2"> <!-- bookmark bar -->
     <h2>Bookmarks</h2>
     <div id="new-bookmark-btn"class="bookmark-btn">+</div>
     <div class="bookmark-selector" id="bookmarkSelector">
-      <!-- Buttons will be added here by JavaScript -->
+      <!-- bookmarks added here by JS -->
     </div>
   </div>
 
-  <div class="game-sidebar">
+  <div class="game-sidebar"> <!-- size selection bar -->
     <h2>Grid Size</h2>
     <div id="new-size-btn"class="size-btn">+</div>
     <div class="size-selector" id="sizeSelector">
-      <!-- Buttons will be added here by JavaScript -->
+      <!-- sizes added here by JS -->
     </div>
   </div>
 
-  <!-- Main game area -->
-  <div class="game-main">
-    <!-- Header with timers -->
-    <div class="game-header">
-      <div class="times">
-        <div class="time-display">
+  <div class="game-main"> <!-- tiles and header -->
+    <div class="game-header"> 
+      <div class="times"> <!-- times -->
+        <div class="time-display"> <!-- current time -->
           Current Time<br>
           <span id="stopwatch">00:00.00</span>
         </div>
-        <div class="time-display">
+        <div class="time-display"> <!-- best time -->
           Best Time<br>
           <span id="bestTime">--:--:--</span>
         </div>
       </div>
     </div>
 
-    <!-- Game area with container and cursor -->
-    <div class="game-area">
-      <div class="game-container" id="game"></div>
-      <div class="cursor" id="cursor"></div>
+    <div class="game-area"> <!-- tiles and cursor here -->
+      <div class="game-container" id="game">
+        <!-- tiles added here by JS-->
+      </div>
+      <div class="cursor" id="cursor"></div> <!-- cursor -->
     </div>
   </div>
 
-  <!-- Win message overlay -->
-  <div class="win-message" id="winMessage">
+  <div class="win-message" id="winMessage"> <!-- win message -->
     <div class="message-display">You win!</div>
-    <div id="win-time">--:--:--</div>
-    <div id="win-buttons">
+    <div id="win-time">--:--:--</div> <!-- win time -->
+    <div id="win-buttons"> <!-- retry and next buttons -->
       <div class="win-buttons" id="retry-button">Retry</div>
       <div class="win-buttons" id="next-button">Next</div>
     </div>
   </div>
 
-  <script src="src/game.js"></script>
+  <script src="src/game.js"></script> <!-- link the javascript file -->
 </body>
 
 </html>

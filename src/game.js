@@ -16,7 +16,6 @@ class SeededRandom {
     }
 }
 
-// The actual game
 class TileFlipGame {
     constructor() { // Define constants
         this.GRID_SIZES = [3, 4, 5, 6, 7, 9, 11, 13, 15, 20, 50]; // Starting grid sizes
@@ -39,7 +38,7 @@ class TileFlipGame {
         this.sizeSelector = document.getElementById('sizeSelector'); // The entire size sidebar element
         this.bookmarkSelector = document.getElementById('bookmarkSelector'); // The entire bookmark sidebar element
 
-        this.cursorPosition = { x: Math.floor(gridSize / 2), y: Math.floor(gridSize / 2) }; // The cursors position in the grid, in tiles not pixels
+        this.cursorPosition = { x: Math.floor(this.gridSize / 2), y: Math.floor(this.gridSize / 2) }; // The cursors position in the grid, in tiles not pixels
         this.gameWon = false; // Is the game won?
         this.gameStarted = false; // Is the game started?
         this.timer = null; // The timer interval

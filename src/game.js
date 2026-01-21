@@ -20,9 +20,9 @@ class TileFlipGame {
     constructor() { // Define constants
         this.GRID_SIZES = [3, 4, 5, 6, 7, 9, 11, 13, 15, 20, 50]; // Starting grid sizes
         this.TARGET_GRID_SIZE = window.innerHeight / 1.8; // The tile grid size, not amount of tiles, the actual pixel width
-        this.BASE_CURSOR_BORDER = 3; // Cusor thickness
+        this.BASE_CURSOR_BORDER = 4; // Cusor thickness
 
-        this.version = "v0.96-beta" // Version
+        this.version = "v1.0" // Version
 
         this.gridSize = 5; // Default tile amount when page loaded
         this.customSize; // The + button in grid sizes, used to get size if its not in GRID_SIZES
@@ -155,6 +155,7 @@ class TileFlipGame {
             const button = document.createElement('button');
             button.textContent = `${size}x${size}`; 
             button.classList.add('size-btn');
+            button.classList.add('tile-btn');
             if (size === this.gridSize) {
                 button.classList.add('active');
             }
@@ -209,7 +210,7 @@ class TileFlipGame {
             this.Bookmarks[this.gridSize].forEach(item => {
                 const button = document.createElement('button');
                 button.textContent = item.name;
-                button.classList.add('bookmark-btn');
+                button.classList.add('tile-btn');
                 if (this.seed === item.value) {
                     button.classList.add('active');
                 }
@@ -461,7 +462,7 @@ class TileFlipGame {
             'f': () => this.reset(this.currentSeed),
             'Enter': () => this.reset(this.currentSeed),
 
-            '=': () => this.clearLocalStorage(),
+            '`': () => this.clearLocalStorage(),
         };
         document.addEventListener('keydown', (event) => {
             const handler = keyboardControls[event.key];

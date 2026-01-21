@@ -2,7 +2,7 @@
   --primary-bg: #333333;
   --tile-light: white;
   --tile-dark: rgb(20, 20, 20);
-  --cursor-color: red;
+  --cursor-color: #00907f;
   --win-bg: rgba(0, 0, 0);
   --sidebar-bg: rgba(0, 0, 0, 0.4);
   --button-bg: #444;
@@ -84,25 +84,37 @@ body {
 
 
 /* Sidebar Styling */
-.game-sidebar {
+.left-sidebar {
   position: absolute; /* breaks the sidebar */
   z-index: 100;
   left: 2vw;
   top: 50%;
   transform: translateY(-50%);
-  width: 12vw;
-  background: var(--sidebar-bg);
-  padding: 1.5vh 1vw;
+  background: none;
   
-  border-radius: 1vw;
-  display: flex;
-  flex-direction: column;
-  gap: 1vh;
+  padding: 0px;
   height: 75vh;
-  overflow-y: scroll;
+  width: 15vw;
+
+  display: flex;
+  flex-direction: column
 }
 
-.game-sidebar h2 {
+.size {
+  display: flex;
+
+  border-radius: 1vw;
+  overflow-y: scroll;
+  flex-direction: column;
+
+  background: var(--sidebar-bg);
+  width: 100%;
+  height: 100%;
+  padding: 1vh 0;
+  gap: 1vh;
+}
+
+h2 {
   margin: 0;
   text-align: center;
   padding: 1vh 0;
@@ -113,8 +125,8 @@ body {
 .size-selector {
   display: flex;
   flex-direction: column;
-  gap: 1vh;
   width: 100%;
+  gap: 1vh;
 }
 
 .size-btn {
@@ -123,11 +135,13 @@ body {
   background: var(--button-bg);
   border: none;
   color: white;
-  padding: 1vh;
-  border-radius: 0.5vw;;
+  height: 4vh;
+  border-radius: 0.5vw;
   cursor: pointer;
   transition: background-color 0.2s;
   font-size: 1.8vh;
+  width: 80%;
+  margin: 0 auto;
 }
 
 .size-btn:hover {
@@ -142,37 +156,115 @@ body {
 
 
 /* Sidebar Styling */
-.game-sidebar2 {
+.right-sidebar {
   position: absolute; /* breaks the sidebar */
   z-index: 100;
   right: 2vw;
   top: 50%;
   transform: translateY(-50%);
-  width: 12vw;
-  background: var(--sidebar-bg);
-  padding: 1.5vh 1vw;
+  background: none;
   
-  border-radius: 1vw;;
-  display: flex;
-  flex-direction: column;
-  gap: 1vh;
+  padding: 0px;
   height: 75vh;
-  overflow-y: scroll;
-}
+  width: 15vw;
 
-.game-sidebar2 h2 {
-  margin: 0;
-  text-align: center;
-  padding: 1vh 0;
-  font-size: 2vh;
+  display: flex;
+  flex-direction: column
 }
 
 /* Size Selector */
+.bookmarks {
+  /* display: flex;
+  flex-direction: column;
+  gap: 1vh;
+  width: 100%; */
+
+  background: var(--sidebar-bg);
+  display: flex;
+
+  border-radius: 1vw;
+  overflow-y: scroll;
+  flex-direction: column;
+
+  width: 100%;
+  height: 60%;
+  padding: 1vh 0;
+  gap: 1vh;
+}
+
+.edit {
+  background: var(--sidebar-bg);
+  display: none;
+
+  border-radius: 1vw;
+  overflow-y: scroll;
+  flex-direction: column;
+
+  width: 100%;
+  height: 30%;
+  margin-top: auto;
+  padding: 1vh 0;
+  gap: 1vh;
+}
+
+.new {
+  background: var(--sidebar-bg);
+  display: flex;
+
+  border-radius: 1vw;
+  overflow-y: scroll;
+  flex-direction: column;
+
+  width: 100%;
+  height: 30%;
+  margin-top: auto;
+  padding: 1vh 0;
+  gap: 1vh;
+}
+
+.editnew-btn {
+  font-weight: 500;
+  text-align: center;
+  background: var(--button-bg);
+  border: none;
+  color: white;
+  height: 4vh;
+  border-radius: 0.5vw;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 1.8vh;
+  width: 80%;
+  margin: 0 auto;
+}
+
+.editnew-input {
+  font-weight: 500;
+  text-align: center;
+  background: var(--button-bg);
+  border: none;
+  color: white;
+  height: 4vh;
+  border-radius: 0.5vw;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 1.8vh;
+  width: 80%;
+  margin: 0 auto;
+}
+
+.editnew-btn:hover {
+  background: var(--button-hover);
+}
+
+.editnew-btn.active {
+  background: var(--button-active);
+}
+
 .bookmark-selector {
   display: flex;
   flex-direction: column;
-  gap: 1vh;
   width: 100%;
+  gap: 1vh;
 }
 
 .bookmark-btn {
@@ -181,11 +273,13 @@ body {
   background: var(--button-bg);
   border: none;
   color: white;
-  padding: 1vh;
+  height: 4vh;
   border-radius: 0.5vw;
   cursor: pointer;
   transition: background-color 0.2s;
   font-size: 1.8vh;
+  width: 80%;
+  margin: 0 auto;
 }
 
 .bookmark-btn:hover {
@@ -223,7 +317,7 @@ body {
   position: absolute;
   width: var(--tile-size);
   height: var(--tile-size);
-  border: 3px solid var(--cursor-color);
+  border: 5px solid var(--cursor-color);
   border-radius: 5px;
   box-sizing: border-box;
   transition: transform 0.2s ease;
@@ -326,55 +420,4 @@ body {
 
 #version {
   white-space: nowrap;
-}
-
-
-
-/* Aspect Ratio Based Layout */
-@media (max-aspect-ratio: 4/5) {
-  .game-header {
-      width: 50vw;
-  }
-
-  .game-sidebar {
-      width: auto;
-      position: fixed;
-      left: 0;
-      right: 50vw;
-      top: auto;
-      bottom: 0;
-      transform: none;
-      max-height: 20vh;
-      border-radius: 8px 8px 0 0;
-      padding: 1vh 2vw;
-  }
-
-  .game-sidebar2 {
-    width: auto;
-    position: fixed;
-    right: 0;
-    left: 50vw;
-    top: auto;
-    bottom: 0;
-    transform: none;
-    max-height: 20vh;
-    border-radius: 8px 8px 0 0;
-    padding: 1vh 2vw;
-}
-
-  .size-selector {
-      flex-direction: row;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 1vw;
-  }
-
-  .size-btn {
-      min-width: 15vw;
-      padding: 1vh 2vw;
-  }
-
-  .game-main {
-      padding-bottom: 22vh;
-  }
 }

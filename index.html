@@ -17,19 +17,42 @@
     <div id="version">v???</div>
   </div>
 
-  <div class="game-sidebar2"> <!-- bookmark bar -->
-    <h2>Bookmarks</h2>
-    <div id="new-bookmark-btn"class="bookmark-btn">+</div>
-    <div class="bookmark-selector" id="bookmarkSelector">
-      <!-- bookmarks added here by JS -->
+  <div class="right-sidebar">
+
+    <div class="bookmarks"> <!-- bookmark bar -->
+      <h2>Bookmarks</h2>
+      <div id="new-bookmark-btn"class="tile-btn bookmark-btn">+</div>
+      <div class="bookmark-selector" id="bookmarkSelector">
+        <!-- bookmarks added here by JS -->
+      </div>
     </div>
+
+    <div class="edit"> <!-- bookmark bar -->
+      <h2>Edit</h2>
+      
+      <input placeholder="Name" class="editnew-input"></input>
+      <input placeholder="Seed" class="editnew-input"></input>
+      <button class="editnew-btn">Rename</button>
+      <button class="editnew-btn">DELETE</button>
+    </div>
+
+    <div class="new"> <!-- bookmark bar -->
+      <h2>New</h2>
+      
+      <input placeholder="Name" class="editnew-input"></input>
+      <input placeholder="Seed (Leave blank for current)" class="editnew-input"></input>
+      <button class="editnew-btn">CREATE</button>
+    </div>
+
   </div>
 
-  <div class="game-sidebar"> <!-- size selection bar -->
-    <h2>Grid Size</h2>
-    <div id="new-size-btn"class="size-btn">+</div>
-    <div class="size-selector" id="sizeSelector">
-      <!-- sizes added here by JS -->
+  <div class="left-sidebar"> <!-- size selection bar -->
+    <div class="size"> <!-- size selection bar -->
+      <h2>Grid Size</h2>
+      <div id="new-size-btn"class="tile-btn size-btn">+</div>
+      <div class="size-selector" id="sizeSelector">
+        <!-- sizes added here by JS -->
+      </div>
     </div>
   </div>
 

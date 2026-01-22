@@ -37,6 +37,10 @@ class TileFlipGame {
         this.bestTimeDisplay = document.getElementById('bestTime'); // The best time in the topbar element
         this.sizeSelector = document.getElementById('sizeSelector'); // The entire size sidebar element
         this.bookmarkSelector = document.getElementById('bookmarkSelector'); // The entire bookmark sidebar element
+        this.leftSidebar = document.getElementById('left-sidebar');
+        this.rightSidebar = document.getElementById('right-sidebar');
+        this.editBookmark = document.getElementById('edit-bookmark');
+        this.createBookmark = document.getElementById('create-bookmark');
 
         this.cursorPosition = { x: Math.floor(this.gridSize / 2), y: Math.floor(this.gridSize / 2) }; // The cursors position in the grid, in tiles not pixels
         this.gameWon = false; // Is the game won?
@@ -155,7 +159,6 @@ class TileFlipGame {
             const button = document.createElement('button');
             button.textContent = `${size}x${size}`; 
             button.classList.add('size-btn');
-            button.classList.add('tile-btn');
             if (size === this.gridSize) {
                 button.classList.add('active');
             }
@@ -187,15 +190,17 @@ class TileFlipGame {
         newBookmarkButton.addEventListener('click', (e) => {
             e.preventDefault();
 
-            let name = prompt("Name?");
-            if(name) {
-                let seed = prompt("Seed? (Leave black for current seed)");
-                if(seed) {
-                    this.newBookmark(name, seed)
-                } else {
-                    this.newBookmark(name, this.currentSeed)
-                }
-            }            
+            this.createBookmark.style.display = 'flex'
+            this.editBookmark.style.display = 'none'
+            // let name = prompt("Name?");
+            // if(name) {
+            //     let seed = prompt("Seed? (Leave black for current seed)");
+            //     if(seed) {
+            //         this.newBookmark(name, seed)
+            //     } else {
+            //         this.newBookmark(name, this.currentSeed)
+            //     }
+            // }            
 
         });
 
@@ -210,14 +215,18 @@ class TileFlipGame {
             this.Bookmarks[this.gridSize].forEach(item => {
                 const button = document.createElement('button');
                 button.textContent = item.name;
-                button.classList.add('tile-btn');
-                if (this.seed === item.value) {
+                button.classList.add('bookmark-btn');
+                if (this.currentSeed === item.value) {
                     button.classList.add('active');
                 }
                 
                 button.addEventListener('click', (e) => {
+                    this.createBookmark.style.display = 'flex'
+                    this.editBookmark.style.display = 'none'
                     e.preventDefault();
                     this.reset(item.value)
+                    this.updateBookmarkSelector();
+
                 });
     
                 this.bookmarkSelector.appendChild(button);
@@ -226,6 +235,14 @@ class TileFlipGame {
         }
     }
 
+
+    updateBookmarkSelector() {
+        const buttons = this.bookmarkSelector.querySelectorAll('.bookmark-btn');
+        const bookmarks = this.Bookmarks[this.gridSize]
+        for (let i = 0; i < bookmarks.length; i++) {
+            buttons[i].classList.toggle('active', this.currentSeed == bookmarks[i].value);
+        }
+    }
 
     initializeButtons() {
         this.nextButton.addEventListener('click', () => {
@@ -415,6 +432,7 @@ class TileFlipGame {
         this.reloadBookmarkSelector();
         this.reset(Math.floor(Math.random() * 1000000));
         this.updateBestTimeDisplay();
+        this.updateBookmarkSelector();
     }
 
     reset(newSeed = null) {

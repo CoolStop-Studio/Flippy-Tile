@@ -84,7 +84,7 @@ body {
 
 
 /* Sidebar Styling */
-.left-sidebar {
+#left-sidebar {
   position: absolute; /* breaks the sidebar */
   z-index: 100;
   left: 2vw;
@@ -156,7 +156,7 @@ h2 {
 
 
 /* Sidebar Styling */
-.right-sidebar {
+#right-sidebar {
   position: absolute; /* breaks the sidebar */
   z-index: 100;
   right: 2vw;
@@ -192,22 +192,7 @@ h2 {
   gap: 1vh;
 }
 
-.edit {
-  background: var(--sidebar-bg);
-  display: none;
-
-  border-radius: 1vw;
-  overflow-y: scroll;
-  flex-direction: column;
-
-  width: 100%;
-  height: 30%;
-  margin-top: auto;
-  padding: 1vh 0;
-  gap: 1vh;
-}
-
-.new {
+#edit-bookmark {
   background: var(--sidebar-bg);
   display: flex;
 
@@ -222,7 +207,22 @@ h2 {
   gap: 1vh;
 }
 
-.editnew-btn {
+#create-bookmark {
+  background: var(--sidebar-bg);
+  display: none;
+
+  border-radius: 1vw;
+  overflow-y: scroll;
+  flex-direction: column;
+
+  width: 100%;
+  height: 30%;
+  margin-top: auto;
+  padding: 1vh 0;
+  gap: 1vh;
+}
+
+.editcreate-btn {
   font-weight: 500;
   text-align: center;
   background: var(--button-bg);
@@ -237,7 +237,7 @@ h2 {
   margin: 0 auto;
 }
 
-.editnew-input {
+.editcreate-input {
   font-weight: 500;
   text-align: center;
   background: var(--button-bg);

@@ -106,6 +106,10 @@ class TileFlipGame {
         document.head.appendChild(tileStyle);
     }
 
+    setupCreateAndEditBookmark() {
+        
+    }
+
     initializeSizeSelector() { // Initialize the items on the size selector sidebar
         this.sizeSelector.innerHTML = '';
         
